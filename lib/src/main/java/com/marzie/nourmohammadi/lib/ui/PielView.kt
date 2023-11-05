@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.TypedValue
@@ -33,10 +34,12 @@ class PielView : View {
     private var defaultBackgroundColor = -1
     private var drawableCenterImage: Drawable? = null
     private var textColor = -0x1
+    private var textFont: Typeface? = null
     private var mLuckyItemList: List<LuckyItem>? = null
     private var mPieRotateListener: PieRotateListener? = null
 
     private val emptyBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
+
     interface PieRotateListener {
         fun rotateDone(index: Int)
     }
@@ -54,11 +57,12 @@ class PielView : View {
         mArcPaint!!.isDither = true
         mTextPaint = Paint()
         mTextPaint!!.color = textColor
-        mTextPaint!!.textSize =
-            TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_SP, 14f,
-                resources.displayMetrics
-            )
+        textFont?.let {
+            mTextPaint!!.typeface = it
+        }
+        mTextPaint!!.textSize = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_SP, 14f, resources.displayMetrics
+        )
         mRange = RectF(
             mPadding.toFloat(),
             mPadding.toFloat(),
@@ -87,11 +91,18 @@ class PielView : View {
         invalidate()
     }
 
+    fun setPieTextFont(fontPath: Typeface) {
+        textFont = fontPath
+        invalidate()
+    }
+
     private fun drawPieBackgroundWithBitmap(canvas: Canvas, bitmap: Bitmap) {
         canvas.drawBitmap(
             bitmap, null, Rect(
-                mPadding / 2, mPadding / 2,
-                measuredWidth - mPadding / 2, measuredHeight - mPadding / 2
+                mPadding / 2,
+                mPadding / 2,
+                measuredWidth - mPadding / 2,
+                measuredHeight - mPadding / 2
             ), null
         )
     }
@@ -114,16 +125,15 @@ class PielView : View {
                 mArcPaint!!.color = it[i].color
                 canvas.drawArc(mRange, tmpAngle, sweepAngle, true, mArcPaint!!)
                 drawText(canvas, tmpAngle, sweepAngle, it[i].text)
-                if (it[i].icon != null) {
+                if (it[i].icon == null) {
                     drawImage(
-                        canvas,
-                        tmpAngle,
-                        emptyBitmap)
-                } else
+                        canvas, tmpAngle, emptyBitmap
+                    )
+                } else {
                     drawImage(
-                        canvas,
-                        tmpAngle,
-                        it[i].icon!!)
+                        canvas, tmpAngle, it[i].icon!!
+                    )
+                }
                 tmpAngle += sweepAngle
             }
         }
@@ -137,8 +147,7 @@ class PielView : View {
         mBackgroundPaint = Paint()
         mBackgroundPaint!!.color = color
         canvas.drawCircle(
-            mCenter.toFloat(), mCenter.toFloat(), mCenter.toFloat(),
-            mBackgroundPaint!!
+            mCenter.toFloat(), mCenter.toFloat(), mCenter.toFloat(), mBackgroundPaint!!
         )
     }
 
@@ -223,8 +232,7 @@ class PielView : View {
         rotation = 0f
         val targetAngle =
             360 * mRoundOfNumber + 270 - angleOfIndexTarget + 360 / mLuckyItemList!!.size / 2
-        animate()
-            .setInterpolator(DecelerateInterpolator())
+        animate().setInterpolator(DecelerateInterpolator())
             .setDuration(mRoundOfNumber * 1000 + 900L)
             .setListener(object : Animator.AnimatorListener {
                 override fun onAnimationStart(animation: Animator) {
@@ -240,9 +248,37 @@ class PielView : View {
 
                 override fun onAnimationCancel(animation: Animator) {}
                 override fun onAnimationRepeat(animation: Animator) {}
-            })
-            .rotation(targetAngle)
-            .start()
+            }).rotation(targetAngle).start()
+
+    }
+
+    fun stopTo(index: Int) {
+        if (isRunning) {
+            return
+        }
+        mTargetIndex = index
+        rotation = 0f
+        val targetAngle =
+            360 * mRoundOfNumber + 270 - angleOfIndexTarget + 360 / mLuckyItemList!!.size / 2
+        animate().setInterpolator(DecelerateInterpolator())
+            .setDuration(mRoundOfNumber * 1000 + 900L)
+            .setListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(animation: Animator) {
+                    isRunning = true
+                }
+
+                override fun onAnimationEnd(animation: Animator) {}
+
+                override fun onAnimationCancel(animation: Animator) {
+                    isRunning = false
+                    if (mPieRotateListener != null) {
+                        mPieRotateListener!!.rotateDone(mTargetIndex)
+                    }
+                }
+
+                override fun onAnimationRepeat(animation: Animator) {}
+            }).rotation(targetAngle).cancel()
+
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

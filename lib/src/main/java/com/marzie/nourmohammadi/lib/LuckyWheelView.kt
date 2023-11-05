@@ -1,6 +1,7 @@
 package com.marzie.nourmohammadi.lib
 
 import android.content.Context
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.LayoutInflater
@@ -88,6 +89,10 @@ class LuckyWheelView : RelativeLayout, PielView.PieRotateListener {
         pielView?.setPieTextColor(color)
     }
 
+    fun setLuckyWheelTextFont(fontPath: Typeface) {
+        pielView?.setPieTextFont(fontPath = fontPath)
+    }
+
     /**
      *
      * @param data
@@ -106,5 +111,9 @@ class LuckyWheelView : RelativeLayout, PielView.PieRotateListener {
 
     fun startLuckyWheelWithTargetIndex(index: Int) {
         pielView?.rotateTo(index)
+    }
+
+    fun stopLuckyWheelWithTargetIndex(index: Int) {
+        pielView?.stopTo(index)
     }
 }
