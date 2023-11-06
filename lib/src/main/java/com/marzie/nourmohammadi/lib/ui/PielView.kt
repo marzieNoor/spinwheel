@@ -14,6 +14,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewPropertyAnimator
 import android.view.animation.DecelerateInterpolator
 import com.marzie.nourmohammadi.lib.drawableToBitmap
 import com.marzie.nourmohammadi.lib.model.LuckyItem
@@ -37,7 +38,7 @@ class PielView : View {
     private var textFont: Typeface? = null
     private var mLuckyItemList: List<LuckyItem>? = null
     private var mPieRotateListener: PieRotateListener? = null
-
+    private var animation: ViewPropertyAnimator? = null
     private val emptyBitmap = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888)
 
     interface PieRotateListener {
@@ -69,6 +70,7 @@ class PielView : View {
             (mPadding + mRadius).toFloat(),
             (mPadding + mRadius).toFloat()
         )
+        animation = animate()
     }
 
     fun setData(luckyItemList: List<LuckyItem>?) {
@@ -253,9 +255,10 @@ class PielView : View {
     }
 
     fun stopTo(index: Int) {
-        if (isRunning) {
+        if (!isRunning) {
             return
         }
+        setRound(1)
         mTargetIndex = index
         rotation = 0f
         val targetAngle =
@@ -277,7 +280,7 @@ class PielView : View {
                 }
 
                 override fun onAnimationRepeat(animation: Animator) {}
-            }).rotation(targetAngle).cancel()
+            }).rotation(targetAngle).start()
 
     }
 
