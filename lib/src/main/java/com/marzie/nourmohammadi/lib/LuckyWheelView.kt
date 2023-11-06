@@ -116,4 +116,8 @@ class LuckyWheelView : RelativeLayout, PielView.PieRotateListener {
     fun stopLuckyWheelWithTargetIndex(index: Int) {
         pielView?.stopTo(index)
     }
+
+    fun cancelLuckyWheel() {
+        pielView?.cancelRotating()
+    }
 }

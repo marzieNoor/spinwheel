@@ -270,19 +270,47 @@ class PielView : View {
                     isRunning = true
                 }
 
-                override fun onAnimationEnd(animation: Animator) {}
-
-                override fun onAnimationCancel(animation: Animator) {
+                override fun onAnimationEnd(animation: Animator) {
                     isRunning = false
                     if (mPieRotateListener != null) {
                         mPieRotateListener!!.rotateDone(mTargetIndex)
                     }
                 }
 
+                override fun onAnimationCancel(animation: Animator) {}
                 override fun onAnimationRepeat(animation: Animator) {}
             }).rotation(targetAngle).start()
 
     }
+
+    fun cancelRotating() {
+        if (!isRunning) {
+            return
+        }
+        setRound(1)
+        rotation = 0f
+        val targetAngle =
+            360 * mRoundOfNumber + 270
+        animate().setInterpolator(DecelerateInterpolator())
+            .setDuration(mRoundOfNumber * 1000 + 900L)
+            .setListener(object : Animator.AnimatorListener {
+                override fun onAnimationStart(animation: Animator) {
+                    isRunning = true
+                }
+
+                override fun onAnimationEnd(animation: Animator) {
+                    isRunning = false
+                    if (mPieRotateListener != null) {
+                        mPieRotateListener!!.rotateDone(mTargetIndex)
+                    }
+                }
+
+                override fun onAnimationCancel(animation: Animator) {}
+                override fun onAnimationRepeat(animation: Animator) {}
+            }).rotation(targetAngle.toFloat()).start()
+
+    }
+
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         return false
